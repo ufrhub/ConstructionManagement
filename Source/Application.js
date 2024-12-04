@@ -61,6 +61,7 @@ APPLICATION.use(Limiter);
 APPLICATION.use(MORGAN('combined'));
 
 import TestRouters from "./Routes/Test.Routes.js";
+import UserRouters from "./Routes/User.Routes.js";
 
 APPLICATION.get("/health", (Request, Response) => {
     return Response.status(201).json(
@@ -75,6 +76,7 @@ APPLICATION.get("/health", (Request, Response) => {
     );
 });
 APPLICATION.use("/api/v1", TestRouters);
+APPLICATION.use("/api/v1", UserRouters);
 
 APPLICATION.use((Error, Request, Response, Next) => {
     LOG_ERROR({ label: "Application.js", service: "Error Handling Middleware", error: Error.stack }); // Log error details for internal use

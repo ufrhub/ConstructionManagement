@@ -44,3 +44,18 @@ export const PORT = PROCESS.env.PORT || 7000;
 export const MONGODB_URI = PROCESS.env.MongoDB_URI || null;
 export const DATABASE_NAME = PROCESS.env.DATABASE_NAME || "ConstructionManagement";
 export const SAVE = "save";
+
+/* Token Constants */
+export const ACCESS_TOKEN_SECRET = PROCESS.env.ACCESS_TOKEN_SECRET;
+export const ACCESS_TOKEN_EXPIRY = PROCESS.env.ACCESS_TOKEN_EXPIRY;
+export const REFRESH_TOKEN_SECRET = PROCESS.env.REFRESH_TOKEN_SECRET;
+export const REFRESH_TOKEN_EXPIRY = PROCESS.env.REFRESH_TOKEN_EXPIRY;
+
+/* Cloudinary Constants */
+export const CLOUDINARY_CLOUD_NAME = PROCESS.env.CLOUDINARY_CLOUD_NAME;
+export const CLOUDINARY_API_KEY = PROCESS.env.CLOUDINARY_API_KEY;
+export const CLOUDINARY_API_SECRET = PROCESS.env.CLOUDINARY_API_SECRET;
+
+/* Nodemailer Constants */
+export const SENDER_EMAIL_ADDRESS = PROCESS.env.SENDER_EMAIL_ADDRESS;
+export const SENDER_APP_PASSWORD = PROCESS.env.SENDER_APP_PASSWORD;
