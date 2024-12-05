@@ -2,8 +2,9 @@ import MONGOOSE, { Schema } from "mongoose";
 import BCRYPT from "bcryptjs";
 import JSON_WEB_TOKEN from "jsonwebtoken";
 import {
-    SAVE,
+    GENDERS,
     USER_TYPES,
+    SAVE,
     ACCESS_TOKEN_SECRET,
     ACCESS_TOKEN_EXPIRY,
     REFRESH_TOKEN_SECRET,
@@ -34,18 +35,27 @@ const USER_SCHEMA = new Schema(
             required: [true, "Last name is required...!"],
             index: true,
         },
+        gender: {
+            type: String,
+            enum: Object.values(GENDERS),
+        },
+        birthDate: {
+            type: Date,
+        },
         email: {
             type: String,
             required: [true, "Email is required...!"],
             unique: true,
             lowercase: true,
             trim: true,
+            match: [/\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/, "Please enter a valid email address."],
         },
         phone: {
             type: String,
-            required: [true, "Phone is required...!"],
+            required: [true, "Phone is required...!"], // Phone number is required
             unique: true,
             trim: true,
+            match: [/^[+]{1}(?:[0-9\-\\(\\)\\/.]\s?){6,15}[0-9]{1}$/, "Please enter a valid phone number."],
         },
         avatar: {
             type: String,
@@ -59,7 +69,7 @@ const USER_SCHEMA = new Schema(
             type: Number,
             required: [true, "UserType is required...!"],
             enum: Object.values(USER_TYPES),
-            index: true,
+            default: 1,
         },
         createdBy: {
             type: Schema.Types.ObjectId,

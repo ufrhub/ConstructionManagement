@@ -10,6 +10,10 @@ DOTENV.config({
     path: PATH.resolve(__dirname, '../.env')
 });
 
+/* Company Constants */
+export const COMPANY_NAME = PROCESS.env.COMPANY_NAME;
+export const HELPLINE_EMAIL = PROCESS.env.HELPLINE_EMAIL;
+
 /* Server Constants */
 export const ONLINE = "online";
 export const FORK = "fork";
@@ -46,6 +50,11 @@ export const DATABASE_NAME = PROCESS.env.DATABASE_NAME || "ConstructionManagemen
 export const SAVE = "save";
 
 /* Model Constants */
+export const GENDERS = {
+    MALE: "M",
+    FEMALE: "F",
+    OTHERS: "O",
+};
 export const USER_TYPES = {
     ADMIN: 0,
     USER: 1,
