@@ -57,7 +57,8 @@ export const GENDERS = {
 };
 export const USER_TYPES = {
     ADMIN: 0,
-    USER: 1,
+    CONTRACTER: 1,
+    WORKER: 2,
 };
 
 /* Token Constants */
