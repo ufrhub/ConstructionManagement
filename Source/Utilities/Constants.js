@@ -45,6 +45,12 @@ export const MONGODB_URI = PROCESS.env.MongoDB_URI || null;
 export const DATABASE_NAME = PROCESS.env.DATABASE_NAME || "ConstructionManagement";
 export const SAVE = "save";
 
+/* Model Constants */
+export const USER_TYPES = {
+    ADMIN: 0,
+    USER: 1,
+};
+
 /* Token Constants */
 export const ACCESS_TOKEN_SECRET = PROCESS.env.ACCESS_TOKEN_SECRET;
 export const ACCESS_TOKEN_EXPIRY = PROCESS.env.ACCESS_TOKEN_EXPIRY;

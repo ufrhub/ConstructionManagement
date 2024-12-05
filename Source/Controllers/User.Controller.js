@@ -74,3 +74,25 @@ export const REGISTER_NEW_USER = ASYNCHRONOUS_HANDLER(async (Request, Response) 
 export const VALIDATE_AND_CREATE_USER = ASYNCHRONOUS_HANDLER(async (Request, Response) => {
 
 });
+
+export const GET_ALL_WORKERS = ASYNCHRONOUS_HANDLER(async (Request, Response) => {
+    try {
+        const { createdBy } = Request.params;
+        const ObjectID = MONGOOSE.Types.ObjectId(createdBy); // Ensure valid ObjectId
+
+        const Workers = await USER.find({ createdBy: ObjectID })
+            .lean({ virtuals: true })
+            .select("-password")
+            .populate("createdBy", "username fullName");
+
+        if (Workers.length > 0) {
+            return Response.status(200).json(
+                new API_RESPONSE(200, Workers, "Workers fetched successfully...!")
+            );
+        }
+
+        throw new API_ERROR(400, "No workers found...!");
+    } catch (error) {
+        throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
+    }
+});

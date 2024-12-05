@@ -3,6 +3,7 @@ import BCRYPT from "bcryptjs";
 import JSON_WEB_TOKEN from "jsonwebtoken";
 import {
     SAVE,
+    USER_TYPES,
     ACCESS_TOKEN_SECRET,
     ACCESS_TOKEN_EXPIRY,
     REFRESH_TOKEN_SECRET,
@@ -20,9 +21,17 @@ const USER_SCHEMA = new Schema(
             trim: true,
             index: true,
         },
-        fullName: {
+        firstName: {
             type: String,
-            required: [true, "Name is required...!"],
+            required: [true, "First name is required...!"],
+            index: true,
+        },
+        middleName: {
+            type: String,
+        },
+        lastName: {
+            type: String,
+            required: [true, "Last name is required...!"],
             index: true,
         },
         email: {
@@ -46,6 +55,22 @@ const USER_SCHEMA = new Schema(
             type: String,
             required: [true, "Password is required...!"],
         },
+        userType: {
+            type: Number,
+            required: [true, "UserType is required...!"],
+            enum: Object.values(USER_TYPES),
+            index: true,
+        },
+        createdBy: {
+            type: Schema.Types.ObjectId,
+            ref: "Users",
+            validate: {
+                validator: function (value) {
+                    return this.userType === 0 || value != null;
+                },
+                message: "CreatedBy is required if userType is not 0...!",
+            },
+        },
         refreshToken: {
             type: String,
             required: false,
@@ -55,6 +80,13 @@ const USER_SCHEMA = new Schema(
         timestamps: true,
     }
 );
+
+USER_SCHEMA.virtual("fullName").get(function () {
+    return `${this.firstName} ${this.middleName ? this.middleName + ' ' : ''}${this.lastName}`;
+});
+
+USER_SCHEMA.set("toObject", { virtuals: true });
+USER_SCHEMA.set("toJSON", { virtuals: true });
 
 USER_SCHEMA.pre(SAVE, async function (Next) {
     if (!this.isModified("password")) return Next();
@@ -68,8 +100,8 @@ USER_SCHEMA.methods.isPasswordCorrect = async function (Password) {
     return await BCRYPT.compare(Password, this.password);
 }
 
-USER_SCHEMA.methods.GenerateAccessToken = async function () {
-    return await JSON_WEB_TOKEN.sign(
+USER_SCHEMA.methods.GenerateAccessToken = function () {
+    return JSON_WEB_TOKEN.sign(
         {
             _id: this._id,
         },
@@ -80,7 +112,7 @@ USER_SCHEMA.methods.GenerateAccessToken = async function () {
     );
 }
 
-USER_SCHEMA.methods.GenerateRefreshToken = async function (AccessToken) {
+USER_SCHEMA.methods.GenerateRefreshToken = function (AccessToken) {
     if (!AccessToken) {
         throw new API_ERROR(
             500,
@@ -94,7 +126,7 @@ USER_SCHEMA.methods.GenerateRefreshToken = async function (AccessToken) {
         );
     }
 
-    return await JSON_WEB_TOKEN.sign(
+    return JSON_WEB_TOKEN.sign(
         {
             _id: this._id,
             accessToken: AccessToken
