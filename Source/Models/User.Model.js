@@ -57,6 +57,9 @@ const USER_SCHEMA = new Schema(
             trim: true,
             match: [/^[+]{1}(?:[0-9\-\\(\\)\\/.]\s?){6,15}[0-9]{1}$/, "Please enter a valid phone number."],
         },
+        address: {
+            type: String,
+        },
         avatar: {
             type: String,
             required: [true, "Avatar is required...!"],
