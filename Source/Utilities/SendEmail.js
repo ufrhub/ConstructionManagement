@@ -1,7 +1,7 @@
 import NODE_MAILER from "nodemailer";
 import { SENDER_EMAIL_ADDRESS, SENDER_APP_PASSWORD } from "./Constants.js";
 
-export const SEND_EMAIL = (from, To, Subject = "noreply", EmailBody) => {
+export const SEND_EMAIL = ({ from = SENDER_EMAIL_ADDRESS, To, Subject = "noreply", EmailBody }) => {
     const SMTP_TRANSPORT = NODE_MAILER.createTransport({
         service: "gmail",
         auth: {
@@ -11,7 +11,7 @@ export const SEND_EMAIL = (from, To, Subject = "noreply", EmailBody) => {
     });
 
     const EMAIL_OPTIONS = {
-        from: from || SENDER_EMAIL_ADDRESS,
+        from: from,
         to: To,
         subject: Subject,
         html: EmailBody

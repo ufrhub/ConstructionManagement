@@ -1,6 +1,6 @@
 import { COMPANY_NAME, HELPLINE_EMAIL } from "./Constants.js";
 
-export const EMAIL_VERIFICATION_CONTENT = (OTP) => {
+export const EMAIL_VERIFICATION_TEMPLATE = (OTP) => {
     return `
   <!DOCTYPE html>
   <html lang="en">

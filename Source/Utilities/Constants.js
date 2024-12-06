@@ -79,3 +79,6 @@ export const CLOUDINARY_API_SECRET = PROCESS.env.CLOUDINARY_API_SECRET;
 /* Nodemailer Constants */
 export const SENDER_EMAIL_ADDRESS = PROCESS.env.SENDER_EMAIL_ADDRESS;
 export const SENDER_APP_PASSWORD = PROCESS.env.SENDER_APP_PASSWORD;
+
+/* Controller Constants */
+export const SALT_ROUNDS = 12;

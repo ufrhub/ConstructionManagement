@@ -30,7 +30,7 @@ export const GENERATE_UNIQUE_USERNAME = async (firstName, lastName) => {
             NewUsername = `${BaseUsername}${Counter}`;
         }
 
-        return NewUsername;
+        return NewUsername.toLowerCase();
     } catch (error) {
         throw new API_ERROR(500, `Failed to generate a unique username: ${error.message}`);
     }

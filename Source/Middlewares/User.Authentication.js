@@ -6,12 +6,12 @@ import { USER_TYPES } from "../Utilities/Constants.js";
 
 export const AUTHENTICATE_USER_FOR_REGISTRATION = ASYNCHRONOUS_HANDLER(async (Request, Response, Next) => {
     try {
-        const AuthorizationHeader = Request.cookies?.accessToken || Request.header("Authorization")?.replace("Bearer ", "");
+        const AuthorizationHeader = Request.cookies?.authenticationToken || Request.header("Authorization")?.replace("Bearer ", "");
         const RequestBody = Request.body;
 
         if (RequestBody.userType === USER_TYPES.ADMIN) {
             Request.User = RequestBody;
-            return Next();
+            Next();
         };
 
         if (!AuthorizationHeader) throw new API_ERROR(401, "Unauthorized request...!");
@@ -36,7 +36,7 @@ export const AUTHENTICATE_USER_FOR_REGISTRATION = ASYNCHRONOUS_HANDLER(async (Re
 
 export const AUTHENTICATE_ADMIN = ASYNCHRONOUS_HANDLER(async (Request, Response, Next) => {
     try {
-        const AuthorizationHeader = Request.cookies?.accessToken || Request.header("Authorization")?.replace("Bearer ", "");
+        const AuthorizationHeader = Request.cookies?.authenticationToken || Request.header("Authorization")?.replace("Bearer ", "");
         if (!AuthorizationHeader) throw new API_ERROR(401, "Unauthorized request...!");
 
         const DecodedToken = EXTRACT_AND_VERIFY_AUTHENTICATION_TOKEN(AuthorizationHeader);
@@ -52,7 +52,7 @@ export const AUTHENTICATE_ADMIN = ASYNCHRONOUS_HANDLER(async (Request, Response,
 
 export const AUTHENTICATE_CONTRACTER = ASYNCHRONOUS_HANDLER(async (Request, Response, Next) => {
     try {
-        const AuthorizationHeader = Request.cookies?.accessToken || Request.header("Authorization")?.replace("Bearer ", "");
+        const AuthorizationHeader = Request.cookies?.authenticationToken || Request.header("Authorization")?.replace("Bearer ", "");
         if (!AuthorizationHeader) throw new API_ERROR(401, "Unauthorized request...!");
 
         const DecodedToken = EXTRACT_AND_VERIFY_AUTHENTICATION_TOKEN(AuthorizationHeader);
@@ -68,7 +68,7 @@ export const AUTHENTICATE_CONTRACTER = ASYNCHRONOUS_HANDLER(async (Request, Resp
 
 export const AUTHENTICATE_WORKER = ASYNCHRONOUS_HANDLER(async (Request, Response, Next) => {
     try {
-        const AuthorizationHeader = Request.cookies?.accessToken || Request.header("Authorization")?.replace("Bearer ", "");
+        const AuthorizationHeader = Request.cookies?.authenticationToken || Request.header("Authorization")?.replace("Bearer ", "");
         if (!AuthorizationHeader) throw new API_ERROR(401, "Unauthorized request...!");
 
         const DecodedToken = EXTRACT_AND_VERIFY_AUTHENTICATION_TOKEN(AuthorizationHeader);
