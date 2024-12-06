@@ -11,7 +11,7 @@ export const AUTHENTICATE_USER_FOR_REGISTRATION = ASYNCHRONOUS_HANDLER(async (Re
 
         if (RequestBody.userType === USER_TYPES.ADMIN) {
             Request.User = RequestBody;
-            Next();
+            return Next();
         };
 
         if (!AuthorizationHeader) throw new API_ERROR(401, "Unauthorized request...!");

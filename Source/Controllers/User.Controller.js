@@ -29,7 +29,7 @@ export const REGISTER_NEW_USER = ASYNCHRONOUS_HANDLER(async (Request, Response) 
         } = Request.User;
 
         if (
-            [firstName, lastName, email, phone, password, userType].some((field) => {
+            [firstName, lastName, email, phone, password, userType.toString()].some((field) => {
                 field?.trim() === ""
             })
         ) {
@@ -58,7 +58,7 @@ export const REGISTER_NEW_USER = ASYNCHRONOUS_HANDLER(async (Request, Response) 
             VerificationCode: EmailVerificationCode
         }
         const ActivationToken = GENERATE_ACTIVATION_TOKEN(NewUser);
-        const EmailTemplate = EMAIL_VERIFICATION_TEMPLATE(EmailVerificationCode);
+        const EmailTemplate = EMAIL_VERIFICATION_TEMPLATE(OTP);
 
         SEND_EMAIL(
             {
@@ -74,7 +74,7 @@ export const REGISTER_NEW_USER = ASYNCHRONOUS_HANDLER(async (Request, Response) 
                     {
                         token: ActivationToken
                     },
-                    "User registered successfully...!"
+                    "Verification Email Sent. Verify Your Email...!...!"
                 )
             );
     } catch (error) {

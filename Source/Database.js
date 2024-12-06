@@ -23,7 +23,7 @@ const CONNECT_DATABASE = async () => {
     }
 
     try {
-        const CONNECTION_INSTANCE = await MONGOOSE.connect(`${MONGODB_URI}/${DATABASE_NAME}`, {
+        const CONNECTION_INSTANCE = await MONGOOSE.connect(`${MONGODB_URI}${DATABASE_NAME}`, {
             serverSelectionTimeoutMS: 10000,
             socketTimeoutMS: 60000,
         });
