@@ -42,6 +42,7 @@ export const REGISTER_NEW_USER = ASYNCHRONOUS_HANDLER(async (Request, Response) 
 
         if (ExistingUser) throw new API_ERROR(400, "User already exist...!");
 
+        const EmailVerificationCode = GENERATE_OTP(6);
         
     } catch (error) {
         throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);

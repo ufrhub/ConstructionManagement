@@ -1,6 +1,6 @@
 import JSON_WEB_TOKEN from "jsonwebtoken";
 import { USER } from "../Models/User.Model.js";
-import { ACCESS_TOKEN_SECRET } from "./Constants.js";
+import { ACCESS_TOKEN_SECRET, ACTIVATION_TOKEN_SECRET, AUTHENTICATION_TOKEN_SECRET } from "./Constants.js";
 import { API_ERROR } from "./ApiError.js";
 
 export const GENERATE_UNIQUE_USERNAME = async (firstName, lastName) => {
@@ -145,7 +145,7 @@ export const EXTRACT_FROM_STRING = ({
     return { StringBefore, StringAfter, UpdatedString };
 }
 
-export const EXTRACT_AND_VERIFY_AUTHENTICATION_TOKEN = (AuthorizationHeader) => {
+export const EXTRACT_AND_VERIFY_ACCESS_TOKEN = (AuthorizationHeader) => {
     try {
         const ExtractedAuthorizationHeader = EXTRACT_FROM_STRING({
             ExtractBefore: ".",
@@ -156,6 +156,42 @@ export const EXTRACT_AND_VERIFY_AUTHENTICATION_TOKEN = (AuthorizationHeader) => 
 
         const Token = ExtractedAuthorizationHeader.UpdatedString;
         const DecodedToken = JSON_WEB_TOKEN.verify(Token, ACCESS_TOKEN_SECRET);
+
+        return DecodedToken;
+    } catch (error) {
+        throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
+    }
+}
+
+export const EXTRACT_AND_VERIFY_ACTIVATION_TOKEN = (AuthorizationHeader) => {
+    try {
+        const ExtractedAuthorizationHeader = EXTRACT_FROM_STRING({
+            ExtractBefore: ".",
+            CountExtractBefore: 2,
+            OriginalString: AuthorizationHeader,
+            CharactersToExtractBefore: 24,
+        });
+
+        const Token = ExtractedAuthorizationHeader.UpdatedString;
+        const DecodedToken = JSON_WEB_TOKEN.verify(Token, ACTIVATION_TOKEN_SECRET);
+
+        return DecodedToken;
+    } catch (error) {
+        throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
+    }
+}
+
+export const EXTRACT_AND_VERIFY_AUTHENTICATION_TOKEN = (AuthorizationHeader) => {
+    try {
+        const ExtractedAuthorizationHeader = EXTRACT_FROM_STRING({
+            ExtractBefore: ".",
+            CountExtractBefore: 2,
+            OriginalString: AuthorizationHeader,
+            CharactersToExtractBefore: 24,
+        });
+
+        const Token = ExtractedAuthorizationHeader.UpdatedString;
+        const DecodedToken = JSON_WEB_TOKEN.verify(Token, AUTHENTICATION_TOKEN_SECRET);
 
         return DecodedToken;
     } catch (error) {
