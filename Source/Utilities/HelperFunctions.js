@@ -17,6 +17,8 @@ export const GENERATE_UNIQUE_USERNAME = async (firstName, lastName) => {
             .select("username")
             .lean();
 
+        if (!MatchingUsers.length > 0) return BaseUsername.toLowerCase();
+
         const ExistingUsernames = new Set(MatchingUsers.map(user => user.username.toLowerCase()));
 
         if (!ExistingUsernames.has(BaseUsername)) {

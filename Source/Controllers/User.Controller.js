@@ -42,7 +42,7 @@ export const REGISTER_NEW_USER = ASYNCHRONOUS_HANDLER(async (Request, Response) 
 
         if (ExistingUser) throw new API_ERROR(400, "User already exist...!");
 
-        const UniqueUsername = GENERATE_UNIQUE_USERNAME(firstName, lastName);
+        const UniqueUsername = await GENERATE_UNIQUE_USERNAME(firstName, lastName);
         const OTP = GENERATE_OTP(6);
         const EmailVerificationCode = await Bcrypt.hash(OTP, SALT_ROUNDS);
         const NewUser = {
@@ -118,8 +118,8 @@ export const ACTIVATE_NEW_USER = ASYNCHRONOUS_HANDLER(async (Request, Response) 
             email,
             phone,
             password,
-            userType,
-            createdBy,
+            userType: parseInt(userType),
+            createdBy: createdBy !== "" ? createdBy : null,
         });
 
         if (!CreatedUser) throw new API_ERROR(500, "Something went wrong while registering new User...!");

@@ -62,7 +62,6 @@ const USER_SCHEMA = new Schema(
         },
         avatar: {
             type: String,
-            required: [true, "Avatar is required...!"],
         },
         password: {
             type: String,
@@ -77,12 +76,7 @@ const USER_SCHEMA = new Schema(
         createdBy: {
             type: Schema.Types.ObjectId,
             ref: "Users",
-            validate: {
-                validator: function (value) {
-                    return this.userType === 0 || value != null;
-                },
-                message: "CreatedBy is required if userType is not 0...!",
-            },
+            required: false,
         },
         refreshToken: {
             type: String,
@@ -91,6 +85,7 @@ const USER_SCHEMA = new Schema(
     },
     {
         timestamps: true,
+        collection: "Users",
     }
 );
 
@@ -103,52 +98,80 @@ USER_SCHEMA.set("toJSON", { virtuals: true });
 
 USER_SCHEMA.pre(SAVE, async function (Next) {
     if (!this.isModified("password")) return Next();
-
-    const SaltRounds = 12;
-    this.password = await BCRYPT.hash(this.password, SaltRounds);
-    Next();
-});
-
-USER_SCHEMA.methods.isPasswordCorrect = async function (Password) {
-    return await BCRYPT.compare(Password, this.password);
-}
-
-USER_SCHEMA.methods.GenerateAccessToken = function () {
-    return JSON_WEB_TOKEN.sign(
-        {
-            _id: this._id,
-        },
-        ACCESS_TOKEN_SECRET,
-        {
-            expiresIn: ACCESS_TOKEN_EXPIRY
-        },
-    );
-}
-
-USER_SCHEMA.methods.GenerateRefreshToken = function (AccessToken) {
-    if (!AccessToken) {
+    if (this.userType !== 0 && !this.createdBy) {
         throw new API_ERROR(
-            500,
-            "Access Token not found...!",
+            400,
+            "CreatedBy is required if userType is not 0...!",
             [
                 {
                     label: "User.Model.js",
-                    message: "Access Token not found...!",
+                    message: "CreatedBy is required if userType is not 0...!",
                 }
             ]
         );
     }
 
-    return JSON_WEB_TOKEN.sign(
-        {
-            _id: this._id,
-            accessToken: AccessToken
-        },
-        REFRESH_TOKEN_SECRET,
-        {
-            expiresIn: REFRESH_TOKEN_EXPIRY
-        },
-    );
+    try {
+        const SaltRounds = 12;
+        this.password = await BCRYPT.hash(this.password, SaltRounds);
+        Next();
+    } catch (error) {
+        throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
+    }
+});
+
+USER_SCHEMA.methods.isPasswordCorrect = async function (Password) {
+    try {
+        return await BCRYPT.compare(Password, this.password);
+    } catch (error) {
+        throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
+    }
+}
+
+USER_SCHEMA.methods.GenerateAccessToken = function () {
+    try {
+        return JSON_WEB_TOKEN.sign(
+            {
+                _id: this._id,
+            },
+            ACCESS_TOKEN_SECRET,
+            {
+                expiresIn: ACCESS_TOKEN_EXPIRY
+            },
+        );
+    } catch (error) {
+        throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
+    }
+}
+
+USER_SCHEMA.methods.GenerateRefreshToken = function (AccessToken) {
+    try {
+        if (!AccessToken) {
+            throw new API_ERROR(
+                500,
+                "Access Token not found...!",
+                [
+                    {
+                        label: "User.Model.js",
+                        message: "Access Token not found...!",
+                    }
+                ]
+            );
+        }
+
+        return JSON_WEB_TOKEN.sign(
+            {
+                _id: this._id,
+                accessToken: AccessToken
+            },
+            REFRESH_TOKEN_SECRET,
+            {
+                expiresIn: REFRESH_TOKEN_EXPIRY
+            },
+        );
+    } catch (error) {
+        throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
+    }
 }
 
 export const USER = MONGOOSE.model("Users", USER_SCHEMA);

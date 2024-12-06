@@ -9,6 +9,7 @@ export const VERIFY_USER_ACTIVATION = ASYNCHRONOUS_HANDLER(async (Request, Respo
         if (!AuthorizationHeader) throw new API_ERROR(401, "Unauthorized request...!");
 
         const DecodedToken = JSON_WEB_TOKEN.verify(AuthorizationHeader, ACTIVATION_TOKEN_SECRET);
+        if (!DecodedToken) throw new API_ERROR(401, "Invalid Access Token...!");
 
         Request.User = DecodedToken;
         Next();
