@@ -2,7 +2,12 @@ import JSON_WEB_TOKEN from "jsonwebtoken";
 import { USER } from "../Models/User.Model.js";
 import { INSERT_INTO_STRING } from "./HelperFunctions.js";
 import { API_ERROR } from "./ApiError.js";
-import { ACTIVATION_TOKEN_SECRET, ACTIVATION_TOKEN_EXPIRY, AUTHENTICATION_TOKEN_SECRET, AUTHENTICATION_TOKEN_EXPIRY } from "./Constants.js";
+import {
+    ACTIVATION_TOKEN_SECRET,
+    ACTIVATION_TOKEN_EXPIRY,
+    AUTHENTICATION_TOKEN_SECRET,
+    AUTHENTICATION_TOKEN_EXPIRY
+} from "./Constants.js";
 
 export const GENERATE_REFRESH_AND_ACCESS_TOKEN = async ({ User, _id, username, email, phone }) => {
     try {
@@ -89,14 +94,7 @@ export const GENERATE_ACTIVATION_TOKEN = (Payload) => {
         },
     );
 
-    const UpdatedActivationToken = INSERT_INTO_STRING({
-        InsertBefore: ".",
-        CountInsertBefore: 2,
-        OriginalString: ActivationToken,
-        InsertStringBefore: Payload.email,
-    });
-
-    return UpdatedActivationToken;
+    return ActivationToken;
 }
 
 export const GENERATE_AUTHENTICATION_TOKEN = (ID) => {
@@ -110,12 +108,5 @@ export const GENERATE_AUTHENTICATION_TOKEN = (ID) => {
         },
     );
 
-    const UpdatedAuthenticationToken = INSERT_INTO_STRING({
-        InsertBefore: ".",
-        CountInsertBefore: 2,
-        OriginalString: AuthenticationToken,
-        InsertStringBefore: ID,
-    });
-
-    return UpdatedAuthenticationToken;
+    return AuthenticationToken;
 }

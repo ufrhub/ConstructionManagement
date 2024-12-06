@@ -162,39 +162,3 @@ export const EXTRACT_AND_VERIFY_ACCESS_TOKEN = (AuthorizationHeader) => {
         throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
     }
 }
-
-export const EXTRACT_AND_VERIFY_ACTIVATION_TOKEN = (AuthorizationHeader) => {
-    try {
-        const ExtractedAuthorizationHeader = EXTRACT_FROM_STRING({
-            ExtractBefore: ".",
-            CountExtractBefore: 2,
-            OriginalString: AuthorizationHeader,
-            CharactersToExtractBefore: 24,
-        });
-
-        const Token = ExtractedAuthorizationHeader.UpdatedString;
-        const DecodedToken = JSON_WEB_TOKEN.verify(Token, ACTIVATION_TOKEN_SECRET);
-
-        return DecodedToken;
-    } catch (error) {
-        throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
-    }
-}
-
-export const EXTRACT_AND_VERIFY_AUTHENTICATION_TOKEN = (AuthorizationHeader) => {
-    try {
-        const ExtractedAuthorizationHeader = EXTRACT_FROM_STRING({
-            ExtractBefore: ".",
-            CountExtractBefore: 2,
-            OriginalString: AuthorizationHeader,
-            CharactersToExtractBefore: 24,
-        });
-
-        const Token = ExtractedAuthorizationHeader.UpdatedString;
-        const DecodedToken = JSON_WEB_TOKEN.verify(Token, AUTHENTICATION_TOKEN_SECRET);
-
-        return DecodedToken;
-    } catch (error) {
-        throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
-    }
-}
