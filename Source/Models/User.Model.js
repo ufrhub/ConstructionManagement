@@ -1,16 +1,36 @@
 import MONGOOSE, { Schema } from "mongoose";
 import BCRYPT from "bcryptjs";
-import JSON_WEB_TOKEN from "jsonwebtoken";
 import {
     GENDERS,
     USER_TYPES,
     SAVE,
-    ACCESS_TOKEN_SECRET,
-    ACCESS_TOKEN_EXPIRY,
-    REFRESH_TOKEN_SECRET,
-    REFRESH_TOKEN_EXPIRY
+    LOGIN_STATUS,
 } from "../Utilities/Constants.js";
 import { API_ERROR } from "../Utilities/ApiError.js";
+import { GENERATE_ACCESS_TOKEN, GENERATE_REFRESH_TOKEN } from "../Utilities/TokensGenerator.js";
+
+const LOGIN_INFORMATION_SCHEMA = new Schema(
+    {
+        time: {
+            type: String,
+            required: true,
+        },
+        ip: {
+            type: String,
+            required: true,
+        },
+        device: {
+            type: String,
+            required: true,
+        },
+        currentStatus: {
+            type: Number,
+            required: true,
+            enum: Object.values(LOGIN_STATUS),
+        }
+    },
+    { _id: false }
+);
 
 const USER_SCHEMA = new Schema(
     {
@@ -29,6 +49,7 @@ const USER_SCHEMA = new Schema(
         },
         middleName: {
             type: String,
+            required: false,
         },
         lastName: {
             type: String,
@@ -37,10 +58,12 @@ const USER_SCHEMA = new Schema(
         },
         gender: {
             type: String,
+            required: false,
             enum: Object.values(GENDERS),
         },
         birthDate: {
             type: Date,
+            required: false,
         },
         email: {
             type: String,
@@ -59,9 +82,11 @@ const USER_SCHEMA = new Schema(
         },
         address: {
             type: String,
+            required: false,
         },
         avatar: {
             type: String,
+            required: false,
         },
         password: {
             type: String,
@@ -77,6 +102,11 @@ const USER_SCHEMA = new Schema(
             type: Schema.Types.ObjectId,
             ref: "Users",
             required: false,
+        },
+        loginInfo: {
+            type: [LOGIN_INFORMATION_SCHEMA],
+            required: false,
+            default: [],
         },
         refreshToken: {
             type: String,
@@ -97,30 +127,19 @@ USER_SCHEMA.set("toObject", { virtuals: true });
 USER_SCHEMA.set("toJSON", { virtuals: true });
 
 USER_SCHEMA.pre(SAVE, async function (Next) {
-    if (!this.isModified("password")) return Next();
-    if (this.userType !== 0 && !this.createdBy) {
-        throw new API_ERROR(
-            400,
-            "CreatedBy is required if userType is not 0...!",
-            [
-                {
-                    label: "User.Model.js",
-                    message: "CreatedBy is required if userType is not 0...!",
-                }
-            ]
-        );
-    }
+    if (!this.isModified("password") && !this.isNew) return Next();
 
     try {
         const SaltRounds = 12;
-        this.password = await BCRYPT.hash(this.password, SaltRounds);
+        const HashedPassword = await BCRYPT.hash(this.password, SaltRounds);
+        this.password = HashedPassword;
         Next();
     } catch (error) {
         throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
     }
 });
 
-USER_SCHEMA.methods.isPasswordCorrect = async function (Password) {
+USER_SCHEMA.methods.IS_PASSWORD_CORRECT = async function (Password) {
     try {
         return await BCRYPT.compare(Password, this.password);
     } catch (error) {
@@ -128,50 +147,15 @@ USER_SCHEMA.methods.isPasswordCorrect = async function (Password) {
     }
 }
 
-USER_SCHEMA.methods.GenerateAccessToken = function () {
+USER_SCHEMA.methods.GENERATE_ACCESS_AND_REFRESH_TOKEN = function () {
     try {
-        return JSON_WEB_TOKEN.sign(
-            {
-                _id: this._id,
-            },
-            ACCESS_TOKEN_SECRET,
-            {
-                expiresIn: ACCESS_TOKEN_EXPIRY
-            },
-        );
+        const AccessToken = GENERATE_ACCESS_TOKEN(this._id);
+        const RefreshToken = GENERATE_REFRESH_TOKEN(AccessToken, this.refreshToken, this._id);
+        this.refreshToken = RefreshToken;
+        return AccessToken;
     } catch (error) {
         throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
     }
 }
 
-USER_SCHEMA.methods.GenerateRefreshToken = function (AccessToken) {
-    try {
-        if (!AccessToken) {
-            throw new API_ERROR(
-                500,
-                "Access Token not found...!",
-                [
-                    {
-                        label: "User.Model.js",
-                        message: "Access Token not found...!",
-                    }
-                ]
-            );
-        }
-
-        return JSON_WEB_TOKEN.sign(
-            {
-                _id: this._id,
-                accessToken: AccessToken
-            },
-            REFRESH_TOKEN_SECRET,
-            {
-                expiresIn: REFRESH_TOKEN_EXPIRY
-            },
-        );
-    } catch (error) {
-        throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
-    }
-}
-
-export const USER = MONGOOSE.model("Users", USER_SCHEMA);
+export const USER_SCHEMA_MODEL = MONGOOSE.model("Users", USER_SCHEMA);

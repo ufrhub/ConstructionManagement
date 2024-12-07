@@ -60,6 +60,10 @@ export const USER_TYPES = {
     CONTRACTER: 1,
     WORKER: 2,
 };
+export const LOGIN_STATUS = {
+    LOGGED_IN: 1,
+    LOGGED_OUT: 0,
+};
 
 /* Token Constants */
 export const ACTIVATION_TOKEN_SECRET = PROCESS.env.ACTIVATION_TOKEN_SECRET;

@@ -1,18 +1,18 @@
-import JSON_WEB_TOKEN from "jsonwebtoken";
-import { USER } from "../Models/User.Model.js";
-import { ACCESS_TOKEN_SECRET, ACTIVATION_TOKEN_SECRET, AUTHENTICATION_TOKEN_SECRET } from "./Constants.js";
 import { API_ERROR } from "./ApiError.js";
 
-export const GENERATE_UNIQUE_USERNAME = async (firstName, lastName) => {
+export const GENERATE_UNIQUE_USERNAME = async (USER_SCHEMA_MODEL, firstName, lastName) => {
     try {
         if (!firstName || !lastName) {
             throw new API_ERROR(500, "First name and last name are required to generate a username.");
         }
 
+        const FormattedFirstName = firstName.trim().toLowerCase().replace(/\s+/g, '_');
+        const FormattedLastName = lastName.trim().toLowerCase().replace(/\s+/g, '_');
         const RandomDigits = Math.floor(100 + Math.random() * 900);
-        const BaseUsername = `${firstName.trim().toLowerCase()}_${lastName.trim().toLowerCase()}${RandomDigits}`;
 
-        const MatchingUsers = await USER.where("username")
+        const BaseUsername = `${FormattedFirstName}_${FormattedLastName}${RandomDigits}`;
+
+        const MatchingUsers = await USER_SCHEMA_MODEL.where("username")
             .regex(new RegExp(`^${BaseUsername}`, "i"))
             .select("username")
             .lean();
@@ -145,22 +145,4 @@ export const EXTRACT_FROM_STRING = ({
     }
 
     return { StringBefore, StringAfter, UpdatedString };
-}
-
-export const EXTRACT_AND_VERIFY_ACCESS_TOKEN = (AuthorizationHeader) => {
-    try {
-        const ExtractedAuthorizationHeader = EXTRACT_FROM_STRING({
-            ExtractBefore: ".",
-            CountExtractBefore: 2,
-            OriginalString: AuthorizationHeader,
-            CharactersToExtractBefore: 24,
-        });
-
-        const Token = ExtractedAuthorizationHeader.UpdatedString;
-        const DecodedToken = JSON_WEB_TOKEN.verify(Token, ACCESS_TOKEN_SECRET);
-
-        return DecodedToken;
-    } catch (error) {
-        throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
-    }
 }

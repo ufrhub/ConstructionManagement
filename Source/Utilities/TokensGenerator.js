@@ -1,112 +1,131 @@
 import JSON_WEB_TOKEN from "jsonwebtoken";
-import { USER } from "../Models/User.Model.js";
-import { INSERT_INTO_STRING } from "./HelperFunctions.js";
 import { API_ERROR } from "./ApiError.js";
 import {
     ACTIVATION_TOKEN_SECRET,
     ACTIVATION_TOKEN_EXPIRY,
     AUTHENTICATION_TOKEN_SECRET,
-    AUTHENTICATION_TOKEN_EXPIRY
+    AUTHENTICATION_TOKEN_EXPIRY,
+    ACCESS_TOKEN_SECRET,
+    ACCESS_TOKEN_EXPIRY,
+    REFRESH_TOKEN_SECRET,
+    REFRESH_TOKEN_EXPIRY,
 } from "./Constants.js";
+import { EXTRACT_FROM_STRING } from "./HelperFunctions.js";
 
-export const GENERATE_REFRESH_AND_ACCESS_TOKEN = async ({ User, _id, username, email, phone }) => {
+export const GENERATE_ACTIVATION_TOKEN = (Payload) => {
     try {
-        if (User) {
-            const AccessToken = await User.GenerateAccessToken();
-            const RefreshToken = await User.GenerateRefreshToken(AccessToken);
-
-            User.refreshToken = RefreshToken;
-
-            await User.save({ validateBeforeSave: false });
-
-            const UpdatedAccessToken = INSERT_INTO_STRING({
-                InsertBefore: ".",
-                CountInsertBefore: 2,
-                OriginalString: AccessToken,
-                InsertStringBefore: User._id,
-            });
-
-            return { AccessToken: UpdatedAccessToken, RefreshToken };
-        }
-
-        if (_id) {
-            const AvailableUser = await USER.findById(_id);
-
-            if (!AvailableUser) {
-                throw new API_ERROR(500, "User does not exist with this _id...!");
-            }
-
-            const AccessToken = await AvailableUser.GenerateAccessToken();
-            const RefreshToken = await AvailableUser.GenerateRefreshToken(AccessToken);
-
-            AvailableUser.refreshToken = RefreshToken;
-
-            await AvailableUser.save({ validateBeforeSave: false });
-
-            const UpdatedAccessToken = INSERT_INTO_STRING({
-                InsertBefore: ".",
-                CountInsertBefore: 2,
-                OriginalString: AccessToken,
-                InsertStringBefore: _id,
-            });
-
-            return { AccessToken: UpdatedAccessToken, RefreshToken };
-        }
-
-        if (username || email || phone) {
-            const AvailableUser = await USER.findOne({
-                $or: [{ username: username?.toLowerCase() }, { email: email?.toLowerCase() }, { phone: phone }]
-            });
-
-            if (!AvailableUser) {
-                throw new API_ERROR(500, "User does not exist with this username or email...!");
-            }
-
-            const AccessToken = await AvailableUser.GenerateAccessToken();
-            const RefreshToken = await AvailableUser.GenerateRefreshToken(AccessToken);
-
-            AvailableUser.refreshToken = RefreshToken;
-
-            await AvailableUser.save({ validateBeforeSave: false });
-
-            const UpdatedAccessToken = INSERT_INTO_STRING({
-                InsertBefore: ".",
-                CountInsertBefore: 2,
-                OriginalString: AccessToken,
-                InsertStringBefore: AvailableUser._id,
-            });
-
-            return { AccessToken: UpdatedAccessToken, RefreshToken };
-        }
-
-        return null;
+        return JSON_WEB_TOKEN.sign(
+            Payload,
+            ACTIVATION_TOKEN_SECRET,
+            {
+                expiresIn: ACTIVATION_TOKEN_EXPIRY
+            },
+        );
     } catch (error) {
-        throw new API_ERROR(error?.statusCode, error?.message, [error], error.stack);
+        throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
     }
 }
 
-export const GENERATE_ACTIVATION_TOKEN = (Payload) => {
-    const ActivationToken = JSON_WEB_TOKEN.sign(
-        Payload,
-        ACTIVATION_TOKEN_SECRET,
-        {
-            expiresIn: ACTIVATION_TOKEN_EXPIRY
-        },
-    );
-
-    return ActivationToken;
+export const GENERATE_AUTHENTICATION_TOKEN = (ID) => {
+    try {
+        return JSON_WEB_TOKEN.sign(
+            {
+                _id: ID,
+            },
+            AUTHENTICATION_TOKEN_SECRET,
+            {
+                expiresIn: AUTHENTICATION_TOKEN_EXPIRY
+            },
+        );
+    } catch (error) {
+        throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
+    }
 }
 
-export const GENERATE_AUTHENTICATION_TOKEN = (ID) => {
-    const AuthenticationToken = JSON_WEB_TOKEN.sign(
-        {
-            _id: ID,
-        },
-        AUTHENTICATION_TOKEN_SECRET,
-        {
-            expiresIn: AUTHENTICATION_TOKEN_EXPIRY
-        },
-    );
+export const GENERATE_ACCESS_TOKEN = (ID) => {
+    try {
+        return JSON_WEB_TOKEN.sign(
+            {
+                _id: ID,
+            },
+            ACCESS_TOKEN_SECRET,
+            {
+                expiresIn: ACCESS_TOKEN_EXPIRY
+            },
+        );
+    } catch (error) {
+        throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
+    }
+}
 
-    return AuthenticationToken;
+export const GENERATE_REFRESH_TOKEN = (AccessToken, RefreshToken, ID) => {
+    try {
+        if (!AccessToken) {
+            throw new API_ERROR(
+                500,
+                "Access Token not found...!",
+                [
+                    {
+                        label: "User.Model.js",
+                        message: "Access Token not found...!",
+                    }
+                ]
+            );
+        }
+
+        const AccessTokens = [AccessToken];
+
+        if (RefreshToken) {
+            const Decoded = JSON_WEB_TOKEN.verify(RefreshToken, REFRESH_TOKEN_SECRET);
+            if (Decoded.accessTokens.length > 0) {
+                AccessTokens.push(Decoded.accessTokens);
+            }
+        }
+
+        return JSON_WEB_TOKEN.sign(
+            {
+                _id: ID,
+                accessTokens: AccessTokens
+            },
+            REFRESH_TOKEN_SECRET,
+            {
+                expiresIn: REFRESH_TOKEN_EXPIRY
+            },
+        );
+    } catch (error) {
+        throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
+    }
+}
+
+export const EXTRACT_AND_VERIFY_ACCESS_TOKEN = (AuthorizationHeader) => {
+    try {
+        const ExtractedAuthorizationHeader = EXTRACT_FROM_STRING({
+            ExtractBefore: ".",
+            CountExtractBefore: 2,
+            OriginalString: AuthorizationHeader,
+            CharactersToExtractBefore: 24,
+        });
+
+        const Token = ExtractedAuthorizationHeader.UpdatedString;
+        const DecodedToken = JSON_WEB_TOKEN.verify(Token, ACCESS_TOKEN_SECRET);
+
+        return { DecodedToken, ExtractedAuthorizationHeader };
+    } catch (error) {
+        throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
+    }
+}
+
+export const EXTRACT_ID_FROM_ACCESS_TOKEN = (AuthorizationHeader) => {
+    try {
+        const ExtractedAuthorizationHeader = EXTRACT_FROM_STRING({
+            ExtractBefore: ".",
+            CountExtractBefore: 2,
+            OriginalString: AuthorizationHeader,
+            CharactersToExtractBefore: 24,
+        });
+
+        return ExtractedAuthorizationHeader.StringBefore;
+    } catch (error) {
+        throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
+    }
 }
