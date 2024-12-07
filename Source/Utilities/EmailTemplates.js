@@ -1,7 +1,7 @@
 import { COMPANY_NAME, HELPLINE_EMAIL } from "./Constants.js";
 
 export const EMAIL_VERIFICATION_TEMPLATE = (OTP) => {
-    return `
+  return `
   <!DOCTYPE html>
   <html lang="en">
   <head>
@@ -71,6 +71,7 @@ export const EMAIL_VERIFICATION_TEMPLATE = (OTP) => {
         <p>Hello,</p>
         <p>Thank you for signing up with ${COMPANY_NAME}! To complete your email verification, please use the OTP below:</p>
         <div class="otp">${OTP}</div>
+        <p>This OTP is valid for 10 minutes only.</p>
         <p>If you did not request this, please ignore this email or contact support if you have any concerns.</p>
         <p>Thank you,</p>
         <p>The ${COMPANY_NAME} Team</p>

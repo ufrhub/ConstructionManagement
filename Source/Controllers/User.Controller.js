@@ -40,7 +40,7 @@ export const REGISTER_NEW_USER = ASYNCHRONOUS_HANDLER(async (Request, Response) 
             $or: [{ email: email.toLowerCase() }, { phone: phone.toLowerCase() }]
         }).lean().select("_id username");
 
-        if (ExistingUser) throw new API_ERROR(400, "User already exist...!");
+        if (ExistingUser) throw new API_ERROR(400, "User with this email or phone already exist...!");
 
         const UniqueUsername = await GENERATE_UNIQUE_USERNAME(firstName, lastName);
         const OTP = GENERATE_OTP(6);
@@ -131,6 +131,58 @@ export const ACTIVATE_NEW_USER = ASYNCHRONOUS_HANDLER(async (Request, Response) 
                     200,
                     CreatedUser._id,
                     "User registered successfully...!"
+                )
+            );
+    } catch (error) {
+        throw new API_ERROR(error?.statusCode, error?.message, [error], error?.stack);
+    }
+});
+
+export const LOGIN_USER = ASYNCHRONOUS_HANDLER(async (Request, Response) => {
+    try {
+        const { username, email, password } = Request.body;
+
+        if (!username && !email) throw new API_ERROR(400, "Username or email required...!");
+        if (!password) throw new API_ERROR(400, "Password required...!");
+
+        const User = await USER.findOne({
+            $or: [{ username: username?.toLowerCase() }, { email: email?.toLowerCase() }]
+        });
+
+        if (!User) throw new API_ERROR(404, "User does not exist with this username or email...!");
+
+        const isPasswordMatched = await User.isPasswordCorrect(password);
+
+        if (!isPasswordMatched) throw new API_ERROR(400, "Incorrect password...!");
+
+        const { AccessToken } = await GENERATE_REFRESH_AND_ACCESS_TOKEN({ User });
+        const UserData = {
+            _id: User._id,
+            username: User.username,
+            firstName: User.firstName,
+            middleName: User.middleName,
+            lastName: User.lastName,
+            fullName: User.fullName,
+            gender: User.gender,
+            birthDate: User.birthDate,
+            email: User.email,
+            phone: User.phone,
+            avatar: User.avatar,
+            address: User.address,
+            userType: User.userType,
+            createdBy: User.createdBy,
+            accessToken: AccessToken,
+        }
+
+        return Response.status(200)
+            .cookie("accessToken", AccessToken, CookieOptions)
+            .json(
+                new API_RESPONSE(
+                    200,
+                    {
+                        user: UserData,
+                    },
+                    "User logged in Successfully...!"
                 )
             );
     } catch (error) {
